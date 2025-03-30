@@ -243,13 +243,14 @@ df_event = df[df['eventType'] == selected_event]
 
 st.header(f"Dashboard for {selected_event.capitalize()} Events")
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Timeline", 
     "Clusters", 
     "Word2Vec", 
     "Tweet Embeddings", 
     "Social Graph",
-    "Search System"
+    "Search System",
+    "Model Evaluation"
 ])
 
 
@@ -270,6 +271,29 @@ with tab5:
 
 with tab6:
     show_search_system(df)
+
+with tab7:
+    st.header("Model Evaluation Summary")
+
+    models = ["xgboost", "random_forest", "lightgbm"]
+
+    for model_name in models:
+        st.subheader(model_name.replace("_", " ").title())
+        try:
+            report_path = f"results/{model_name}/report.csv"
+            df = pd.read_csv(report_path, index_col=0)
+
+            df.index = df.index.str.strip().str.lower()
+            if 'accuracy' in df.index:
+                accuracy = df.loc['accuracy', 'f1-score']
+                st.markdown(f"**Accuracy:** `{accuracy:.4f}`")
+
+            # Remove accuracy row for metric table
+            df_metrics = df.drop(index=['accuracy'], errors='ignore')
+            st.dataframe(df_metrics)
+
+        except FileNotFoundError:
+            st.warning(f"No report found for {model_name}.")
 
 def load_my_dataframe():
     df = df_event
